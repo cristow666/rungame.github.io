@@ -1,56 +1,49 @@
 const startBtn = document.getElementById('startBtn');
-// CONTROLS
-window.addEventListener('keydown', (e) => {
-if (e.key === 'ArrowLeft') moveLeft();
-if (e.key === 'ArrowRight') moveRight();
-if (e.code === 'Space') jump();
+const startScreen = document.getElementById('startScreen');
+const gameArea = document.getElementById('gameArea');
+const player = document.getElementById('player');
+const obstacle = document.getElementById('obstacle');
+const scoreEl = document.getElementById('score');
+
+
+let playerX = 160;
+let obstacleX = 360;
+let jumping = false;
+let velocity = 0;
+let score = 0;
+let loop;
+
+
+startBtn.onclick = () => {
+startScreen.style.display = 'none';
+gameArea.style.display = 'block';
+loop = setInterval(gameLoop, 20);
+};
+
+
+window.addEventListener('keydown', e => {
+if (e.key === 'ArrowLeft' && playerX > 0) playerX -= 40;
+if (e.key === 'ArrowRight' && playerX < 320) playerX += 40;
+if (e.code === 'Space' && !jumping) {
+jumping = true;
+velocity = 15;
+}
+player.style.left = playerX + 'px';
 });
 
 
-document.addEventListener('touchstart', jump);
-
-
-function moveLeft() {
-if (playerX > 0) {
-playerX -= 40;
-player.style.left = playerX + 'px';
-}
-}
-
-
-function moveRight() {
-if (playerX < 320) {
-playerX += 40;
-player.style.left = playerX + 'px';
-}
-}
-
-
-function jump() {
-if (!isJumping) {
-gravity = 15;
-isJumping = true;
-}
-}
-
-
 function gameLoop() {
-// Jump physics
-if (isJumping) {
-let bottom = parseInt(window.getComputedStyle(player).getPropertyValue('bottom'));
-if (bottom < 120) {
-player.style.bottom = bottom + gravity + 'px';
-gravity -= 1;
-} else {
-isJumping = false;
-gravity = 0;
-}
-} else {
+if (jumping) {
+let bottom = parseInt(getComputedStyle(player).bottom);
+player.style.bottom = bottom + velocity + 'px';
+velocity--;
+if (bottom <= 10) {
+jumping = false;
 player.style.bottom = '10px';
 }
+}
 
 
-// Obstacle movement
 obstacleX -= 5;
 obstacle.style.left = obstacleX + 'px';
 
@@ -58,17 +51,16 @@ obstacle.style.left = obstacleX + 'px';
 if (obstacleX < -40) {
 obstacleX = 360;
 score++;
-scoreText.innerText = 'Score: ' + score;
+scoreEl.innerText = score;
 }
 
 
-// Collision
 const p = player.getBoundingClientRect();
 const o = obstacle.getBoundingClientRect();
 
 
 if (p.left < o.right && p.right > o.left && p.bottom > o.top && p.top < o.bottom) {
-clearInterval(gameInterval);
+clearInterval(loop);
 alert('Game Over! Score: ' + score);
 location.reload();
 }
